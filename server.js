@@ -3,117 +3,119 @@ var bodyParser = require("body-parser");
 var app = express();
 
 const { ApolloServer, gql } = require("apollo-server");
-
-
+const db = require(`${__dirname}/lib/db`);
 const typeDefs = gql`
-type Content{
-  book_id: Int
-  page :Int
-  text: String
-}
-  type Book {
+
+type Tip {
+  id : Int
+  memo_id: Int
+  tip: String
+  }
+  type Memo {
     id : Int
     title: String
-    author: String
-    contents : [Content]
+    content: String
+    status : String
+    create_at : String
+    tips : [Tip]
   }
  
 
   type Query {
-    books: [Book]
-    book(id:Int) : Book
+    memos: [Memo]
+    memo(id:Int) : Memo
   }
   
   type Mutation {
-    createBook(title: String!,author: String!): Boolean
+    createMemo(title: String!,author: String!): Boolean
     deleteBook(id: Int!): Boolean
   }
 
 `;
 
-let books = [
-    {
-      id: 1,
-      title: 'The Awakening',
-      author: 'Kate Chopin',
-    },
-    {
-      id: 2,
-      title: 'City of Glass',
-      author: 'Paul Auster',
-    },
-  ];
 
-let contents = [
+let tips = [
   {
-    book_id: 1,
-    page : 1,
-    text : "aaaaa"
+    id : 1,
+    memo_id: 1,
+    tip : "aaaaa"
   },
   {
-    book_id: 1,
-    page : 2,
-    text : "bbbbb"
+    id : 2,
+    memo_id: 1,
+    tip : "bbbbb"
   },
   {
-    book_id: 1,
-    page : 3,
-    text : "cccccc"
+    id : 3,
+    memo_id: 1,
+    tip : "cccccc"
   },
   {
-    book_id: 1,
-    page : 4,
-    text : "ddddd"
+    id : 4,
+    memo_id: 2,
+    tip : "asdf"
   },
   {
-    book_id: 1,
-    page : 5,
-    text : "eeeee"
+    id : 5,
+    memo_id: 2,
+    tip : "qwer"
   },
   {
-    book_id: 2,
-    page : 1,
-    text : "asdf"
-  },
-  {
-    book_id: 2,
-    page : 2,
-    text : "qwer"
-  },
-  {
-    book_id: 2,
-    page : 3,
-    text : "dfgh"
-  },
-  {
-    book_id: 2,
-    page : 4,
-    text : "dgh"
+    id : 6,
+    memo_id: 2,
+    tip : "dfgh"
   }
 ]
 
 const resolvers = {
     Query: {
-      books: () => books.map((book) =>{
-        book.contents = contents.filter((content) =>{
-          return book.id == content.book_id
+      memos: async () =>{ 
+        const memo_all = db.mybatisMapper.getStatement(
+          "MEMO",
+          "SELECT_MEMO_ALL.SELECT",
+          {
+          },
+          { language: "sql", indent: "  " }
+        )
+        console.log(memo_all);
+        var memos = await db.sequelize.query(memo_all, {
+          type: db.sequelize.QueryTypes.SELECT,
+        });
+        console.log("12334",memos);
+        const dap = memos.map((memo) =>{
+        memo.tips = tips.filter((tip) =>{
+          return memo.id == tip.memo_id
         })
-        return book
-      }),
+        console.log("memo",memo);
+        return memo 
+      });  return dap },
       
-      book: (_,args) => {
+      memo: async (_,args) => {
+        console.log(args);
+        const memo_one = db.mybatisMapper.getStatement(
+          "MEMO",
+          "SELECT_MEMO_ONE.SELECT",
+          {
+            id : args.id
+          },
+          { language: "sql", indent: "  " }
+        )
 
+        var memos = await db.sequelize.query(memo_one, {
+          type: db.sequelize.QueryTypes.SELECT,
+        });
         //const result = books.filter((book) => {book.id === args.id}); 
-        const result = books.filter((book) =>{
-          book.contents = contents.filter((content) =>{
-            return book.id == content.book_id
+        const result = memos.filter((memo) =>{
+          memo.tips = tips.filter((tip) =>{
+            return memo.id == tip.memo_id
           }) 
-          return book.id === args.id});
+          return memo.id === args.id});
 
         return result[0];
       }
 
     },
+    /*
     Mutation: {
   
       createBook: (_,args) => {
@@ -134,6 +136,7 @@ const resolvers = {
           books.splice(idx, 1);
       }
     }
+    */
   };
 
 const server = new ApolloServer({ typeDefs, resolvers });

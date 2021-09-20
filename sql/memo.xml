@@ -2,54 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="MEMO">
 
-    <select id="SP_CDN_PAGE_TEXT.SELECT">
-    select cd_id,code_desc
-    from tb_code
-    where rel_col = #{rel_col} and use_yn = true 
-    union 
-	select err_id as cd_id, msg as code_desc
-	from tb_err_multilingual tem 
-	where "language" = #{rel_col} 
-	 order by cd_id
+    <select id="SELECT_MEMO_ALL.SELECT">
+        select *
+        from tb_memo
     </select>
 
-    <select id="SP_CDN_LANGUAGE.SELECT">
-    select code_desc,lang_code,cd_id
-    from tb_code
-    where rel_col = 'LANGUAGE' and use_yn = true
-    </select>
-
-    <select id="SP_CDN_NATION.SELECT">
-    select code_desc,cd_id
-    from tb_code
-    where rel_col = #{rel_col} and use_yn = true
-    </select>
-
-    <select id="SP_CDN_SIGNUP_TP.SELECT">
-    select cd_id
-    from tb_code
-    where rel_col = 'SIGNUP_TP' and use_yn = true
-    </select>
-
-    <select id="NA_CDN_TERMS.SELECT">
-    select terms_nm,terms_content
-    from tb_terms
-    where use_yn = true
-        and terms_nm = #{terms_nm}
-        and language = #{language}
-        and user_type = #{user_type}
-    </select>
-    
-    <select id="NA_CDN_TERMS2.SELECT">
-    select terms_nm,language
-    from tb_terms
-    where use_yn = true
-    </select>
-
-    <select id="NA_CDN_TERMS2.SELECT">
-    select *
-    from tb_terms
-    where use_yn = true
+    <select id="SELECT_MEMO_ONE.SELECT">
+        select *
+        from tb_memo
+        where id = #{id}
     </select>
 
     <insert id="NA_CDN_TERMS_INSERTING.INSERT">
@@ -67,38 +28,7 @@
     )
     </insert>
 
-    <update id="NA_CDN_TERMS_UPDATE.UPDATE">
-    UPDATE TB_TERMS
-    SET terms_content = #{terms_content}
-    WHERE terms_nm = #{terms_nm} and  user_type = #{user_type} and language = #{language}
-    </update>
 
-    <select id="NA_AUTH_CONFIRM.SELECT">
-		SELECT 
-			auth_tp
-		FROM TB_AUTH
-		WHERE 1 = 1 
-			AND AUTH_TP = #{auth_tp} 
-			AND USER_EMAIL = LOWER(#{user_email}) 
-			AND AUTH_NO = #{auth_no} 
-			AND AUTH_YN = FALSE 
-    </select>
-
-    <select id="ERROR.SELECT">
-		SELECT 
-			msg
-		FROM tb_err_multilingual
-		WHERE 1 = 1 
-			AND language = #{language} 
-			AND err_id = #{id}
-    </select>
-    
-    <select id="ERROR2.SELECT">
-		SELECT 
-			code_desc
-		FROM tb_code
-		WHERE 1 = 1 and rel_col = #{language} and cd_id = #{id}
-    </select>
 
     <update id="SP_CDN_NATION.UPDATE">
     UPDATE TB_CODE
