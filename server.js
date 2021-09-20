@@ -6,26 +6,32 @@ const { ApolloServer, gql } = require("apollo-server");
 
 
 const typeDefs = gql`
-
+type Content{
+  book_id: Int
+  page :Int
+  text: String
+}
   type Book {
     id : Int
     title: String
     author: String
+    contents : [Content]
   }
-  
+ 
+
   type Query {
     books: [Book]
     book(id:Int) : Book
   }
   
   type Mutation {
-    createBook(title: String!): Boolean
-    deleteBook(title: String!): Boolean
+    createBook(title: String!,author: String!): Boolean
+    deleteBook(id: Int!): Boolean
   }
 
 `;
 
-const books = [
+let books = [
     {
       id: 1,
       title: 'The Awakening',
@@ -38,31 +44,94 @@ const books = [
     },
   ];
 
+let contents = [
+  {
+    book_id: 1,
+    page : 1,
+    text : "aaaaa"
+  },
+  {
+    book_id: 1,
+    page : 2,
+    text : "bbbbb"
+  },
+  {
+    book_id: 1,
+    page : 3,
+    text : "cccccc"
+  },
+  {
+    book_id: 1,
+    page : 4,
+    text : "ddddd"
+  },
+  {
+    book_id: 1,
+    page : 5,
+    text : "eeeee"
+  },
+  {
+    book_id: 2,
+    page : 1,
+    text : "asdf"
+  },
+  {
+    book_id: 2,
+    page : 2,
+    text : "qwer"
+  },
+  {
+    book_id: 2,
+    page : 3,
+    text : "dfgh"
+  },
+  {
+    book_id: 2,
+    page : 4,
+    text : "dgh"
+  }
+]
+
 const resolvers = {
     Query: {
-      books: () => books,
+      books: () => books.map((book) =>{
+        book.contents = contents.filter((content) =>{
+          return book.id == content.book_id
+        })
+        return book
+      }),
       
       book: (_,args) => {
-        console.log('args', args);
-        console.log(books);
-        const result = books.filter(book => book.id === args.id); 
-        console.log('result',result);
+
+        //const result = books.filter((book) => {book.id === args.id}); 
+        const result = books.filter((book) =>{
+          book.contents = contents.filter((content) =>{
+            return book.id == content.book_id
+          }) 
+          return book.id === args.id});
+
         return result[0];
       }
 
     },
     Mutation: {
   
-      // Mutation은 기본적으로 두번째 인자에 정보들(args)을 받아온다. (중요!)
       createBook: (_,args) => {
-        // 받아온정보들 출력하기 ( 나중에 데이터를 추가할 기능이 들어갈 부분 )
+       
         console.log(args);
-        
+        let title = args.title;
+        let author = args.author;
+        let id = books.length+1;
+        let book_temp = {id : id,title : title, author : author }
+        books.push(book_temp);
         return true
       },
       deleteBook: (_,args) => {
-        console.log(args);
-        return true
+        const findbook= books.find(function(book) {
+          return book.id === 1
+          });
+          const idx = books.indexOf(findbook);
+          books.splice(idx, 1);
       }
     }
   };
