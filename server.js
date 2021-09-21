@@ -6,18 +6,13 @@ const { ApolloServer, gql } = require("apollo-server");
 const db = require(`${__dirname}/lib/db`);
 const typeDefs = gql`
 
-type Tip {
-  id : Int
-  memo_id: Int
-  tip: String
-  }
   type Memo {
     id : Int
     title: String
     content: String
     status : String
     create_at : String
-    tips : [Tip]
+    use_yn : String
   }
  
 
@@ -27,45 +22,14 @@ type Tip {
   }
   
   type Mutation {
-    createMemo(title: String!,author: String!): Boolean
-    deleteBook(id: Int!): Boolean
+    createMemo(title: String!,content: String!,status: String!): Int
+    updateMemo(id: Int, status:String): Boolean
+    deleteMemo(id: Int): Boolean
   }
 
 `;
 
 
-let tips = [
-  {
-    id : 1,
-    memo_id: 1,
-    tip : "aaaaa"
-  },
-  {
-    id : 2,
-    memo_id: 1,
-    tip : "bbbbb"
-  },
-  {
-    id : 3,
-    memo_id: 1,
-    tip : "cccccc"
-  },
-  {
-    id : 4,
-    memo_id: 2,
-    tip : "asdf"
-  },
-  {
-    id : 5,
-    memo_id: 2,
-    tip : "qwer"
-  },
-  {
-    id : 6,
-    memo_id: 2,
-    tip : "dfgh"
-  }
-]
 
 const resolvers = {
     Query: {
@@ -81,14 +45,8 @@ const resolvers = {
         var memos = await db.sequelize.query(memo_all, {
           type: db.sequelize.QueryTypes.SELECT,
         });
-        console.log("12334",memos);
-        const dap = memos.map((memo) =>{
-        memo.tips = tips.filter((tip) =>{
-          return memo.id == tip.memo_id
-        })
-        console.log("memo",memo);
-        return memo 
-      });  return dap },
+        return memos
+      },
       
       memo: async (_,args) => {
         console.log(args);
@@ -101,42 +59,74 @@ const resolvers = {
           { language: "sql", indent: "  " }
         )
 
-        var memos = await db.sequelize.query(memo_one, {
+        var memo = await db.sequelize.query(memo_one, {
           type: db.sequelize.QueryTypes.SELECT,
         });
-        //const result = books.filter((book) => {book.id === args.id}); 
-        const result = memos.filter((memo) =>{
-          memo.tips = tips.filter((tip) =>{
-            return memo.id == tip.memo_id
-          }) 
-          return memo.id === args.id});
 
-        return result[0];
+        return memo[0];
       }
 
     },
-    /*
+    
     Mutation: {
   
-      createBook: (_,args) => {
+      createMemo:async (_,args) => {
        
         console.log(args);
         let title = args.title;
-        let author = args.author;
-        let id = books.length+1;
-        let book_temp = {id : id,title : title, author : author }
-        books.push(book_temp);
+        let content = args.content;
+        let status = args.status;
+        const create_memo = db.mybatisMapper.getStatement(
+          "MEMO",
+          "CREATE_MEMO.INSERT",
+          {
+            title,
+            content,
+            status
+          },
+          { language: "sql", indent: "  " }
+        )
+
+        const create_data = await db.sequelize.query(create_memo, {
+          type: db.sequelize.QueryTypes.INSERT,
+        });
+
+        return create_data[0][0].id
+      },
+      updateMemo: async (_,args) => {
+        let id = args.id;
+        let status = args.status;
+        const update_memo = db.mybatisMapper.getStatement(
+          "MEMO",
+          "UPDATE_MEMO.UPDATE",
+          {
+            id,
+            status
+          },
+          { language: "sql", indent: "  " }
+        )
+        await db.sequelize.query(update_memo, {
+          type: db.sequelize.QueryTypes.UPDATE,
+        });
         return true
       },
-      deleteBook: (_,args) => {
-        const findbook= books.find(function(book) {
-          return book.id === 1
-          });
-          const idx = books.indexOf(findbook);
-          books.splice(idx, 1);
+      deleteMemo: async (_,args) => {
+        let id = args.id;
+        const delete_memo = db.mybatisMapper.getStatement(
+          "MEMO",
+          "DELETE_MEMO.UPDATE",
+          {
+            id,
+          },
+          { language: "sql", indent: "  " }
+        )
+        await db.sequelize.query(delete_memo, {
+          type: db.sequelize.QueryTypes.UPDATE,
+        });
+        return true
       }
     }
-    */
+    
   };
 
 const server = new ApolloServer({ typeDefs, resolvers });

@@ -4,36 +4,43 @@
 
     <select id="SELECT_MEMO_ALL.SELECT">
         select *
-        from tb_memo
+        from TB_MEMO
+        where USE_YN = 'Y'
     </select>
 
     <select id="SELECT_MEMO_ONE.SELECT">
         select *
-        from tb_memo
-        where id = #{id}
+        from TB_MEMO
+        where ID = #{id}  
+          and USE_YN = 'Y'
     </select>
 
-    <insert id="NA_CDN_TERMS_INSERTING.INSERT">
-    INSERT INTO TB_TERMS
-        ( terms_nm,
-        terms_content,
-        language,
-        user_type
+    <insert id="CREATE_MEMO.INSERT">
+    INSERT INTO TB_MEMO
+        ( 
+            TITLE,
+            CONTENT,
+            STATUS
         )
-    VALUES (
-        #{terms_nm},
-        #{terms_content},
-        #{language},
-        #{user_type}
-    )
+    VALUES 
+        (
+            #{title},
+            #{content},
+            #{status}
+        )
+    RETURNING id
     </insert>
 
-
-
-    <update id="SP_CDN_NATION.UPDATE">
-    UPDATE TB_CODE
-    SET code_desc = #{code_desc}
-    WHERE cd_id = #{cd_id} and rel_col = #{rel_col}
+    <update id="UPDATE_MEMO.UPDATE">
+    UPDATE TB_MEMO
+    SET STATUS = #{status}
+    WHERE id = #{id} 
     </update>    
+
+    <update id="DELETE_MEMO.UPDATE">
+    UPDATE TB_MEMO
+    SET USE_YN = 'N'
+    WHERE id = #{id} 
+    </update>   
 
 </mapper>
